@@ -1,20 +1,31 @@
-﻿const revealElements = document.querySelectorAll('.reveal');
-
-const observer = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('show');
-        observer.unobserve(entry.target);
-      }
-    });
-  },
-  { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
-);
-
-revealElements.forEach((el) => observer.observe(el));
-
 (() => {
+  const revealElements = Array.from(document.querySelectorAll('.reveal'));
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (revealElements.length) {
+    if (prefersReducedMotion || typeof IntersectionObserver === 'undefined') {
+      revealElements.forEach((el) => el.classList.add('show'));
+    } else {
+      revealElements.forEach((el, index) => {
+        el.style.setProperty('--reveal-delay', `${Math.min(index * 45, 220)}ms`);
+      });
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('show');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.12, rootMargin: '0px 0px -30px 0px' }
+      );
+
+      revealElements.forEach((el) => observer.observe(el));
+    }
+  }
+
   const initEval = () => {
     const form = document.querySelector('#visaEvalForm');
     if (!form) return;
@@ -61,12 +72,12 @@ revealElements.forEach((el) => observer.observe(el));
       if (selected && selected.visaRequiredCN === false) {
         rateEl.textContent = '通过率：99%（免签）';
         levelEl.textContent = '风险等级：低';
-        adviceEl.textContent = `该目的地当前对中国普通护照为免签入境。请重点核查：护照有效期、返程票、住宿信息与停留天数限制。`;
+        adviceEl.textContent = '该目的地当前对中国普通护照为免签入境。请重点核查：护照有效期、返程票、住宿信息与停留天数限制。';
         if (breakdownEl) {
           breakdownEl.innerHTML = [
-            `入境政策：免签（非签证审批）`,
+            '入境政策：免签（非签证审批）',
             `停留规则：${selected.stay}`,
-            `建议：遵守停留天数与入境材料要求`,
+            '建议：遵守停留天数与入境材料要求',
             `高频风险：${selected.riskTips.slice(0, 2).join('、')}`
           ].map((p) => `<li>${p}</li>`).join('');
         }
@@ -158,7 +169,7 @@ revealElements.forEach((el) => observer.observe(el));
   };
 
   if (document.readyState === 'loading') {
-    window.addEventListener('load', initEval, { once: true });
+    window.addEventListener('DOMContentLoaded', initEval, { once: true });
   } else {
     initEval();
   }

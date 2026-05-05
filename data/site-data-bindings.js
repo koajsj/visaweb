@@ -1,17 +1,19 @@
-﻿(() => {
+(() => {
   const local = localStorage.getItem('visa_data_override_v1');
   if (local) {
     try {
       const parsed = JSON.parse(local);
       if (Array.isArray(parsed)) window.VISA_DATA = parsed;
-    } catch {}
+    } catch (error) {
+      console.warn('本地覆盖数据解析失败，已回退默认数据。', error);
+    }
   }
 
   const data = Array.isArray(window.VISA_DATA) ? window.VISA_DATA : [];
   const byCountry = (c) => data.find((d) => d.country === c);
   const isPolicyPage = location.pathname.toLowerCase().includes('/policy/');
   const flagBase = isPolicyPage ? '../assets/flags/' : './assets/flags/';
-  const flagHtml = (item, size = 18) => {
+  const flagHtml = (item) => {
     if (!item.flagCode) return '';
     const code = item.flagCode.toLowerCase();
     return `<img class="flag-icon" src="${flagBase}${code}.svg" alt="${item.country}国旗" loading="lazy" decoding="async" />`;
@@ -78,7 +80,7 @@
 
     window.__activeCountry = current.country;
     detailEl.innerHTML = `
-      <h3>${flagHtml(current, 20)} ${current.country} · ${current.visaType}</h3>
+      <h3>${flagHtml(current)} ${current.country} · ${current.visaType}</h3>
       <div class="detail-cta-row">
         ${officialVisaUrl ? `<a class="btn btn-solid" href="${officialVisaUrl}" target="_blank" rel="noopener noreferrer">前往签证官网</a>` : ''}
       </div>
@@ -107,14 +109,15 @@
       <p class="tip-muted">提示：社区问题来自公开经验总结，官方规则以各国移民/使领馆最新公告为准。</p>
     `;
 
-    listEl.querySelectorAll('.country-item').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        window.__activeCountry = btn.dataset.country;
-        history.replaceState(null, '', `?country=${encodeURIComponent(btn.dataset.country)}`);
-        renderCountryListAndDetail();
-      });
-    });
   };
+
+  document.querySelector('#policyCountryList')?.addEventListener('click', (event) => {
+    const target = event.target.closest('.country-item');
+    if (!target || !target.dataset.country) return;
+    window.__activeCountry = target.dataset.country;
+    history.replaceState(null, '', `?country=${encodeURIComponent(target.dataset.country)}`);
+    renderCountryListAndDetail();
+  });
 
   ['#policySearch', '#policyRegion'].forEach((id) => {
     document.querySelector(id)?.addEventListener('input', renderCountryListAndDetail);
