@@ -1,0 +1,50 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>数据维护 - VisaWeb</title>
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+  <header class="topbar"><div class="container topbar-inner"><a class="brand" href="../index.html"><span class="brand-mark">V</span><span class="brand-name">VisaWeb Admin</span></a></div></header>
+  <main class="container block reveal show">
+    <div class="block-head"><h2>轻量数据维护</h2></div>
+    <section class="card form-card">
+      <p class="tip-muted">粘贴 JSON 数组后可保存到浏览器本地（localStorage），前台页面会优先读取本地数据。</p>
+      <textarea id="adminJson" rows="20" placeholder="粘贴 VISA_DATA JSON"></textarea>
+      <div class="compare-actions">
+        <button id="adminLoad" class="btn btn-ghost" type="button">读取当前数据</button>
+        <button id="adminSave" class="btn btn-solid" type="button">保存本地数据</button>
+        <button id="adminClear" class="btn btn-line" type="button">清除本地覆盖</button>
+      </div>
+      <p id="adminMsg" class="tip-muted"></p>
+    </section>
+  </main>
+  <script>
+    const key = 'visa_data_override_v1';
+    const text = document.getElementById('adminJson');
+    const msg = document.getElementById('adminMsg');
+    document.getElementById('adminLoad').onclick = () => {
+      const local = localStorage.getItem(key);
+      text.value = local || JSON.stringify(window.VISA_DATA || [], null, 2);
+      msg.textContent = '已加载当前数据。';
+    };
+    document.getElementById('adminSave').onclick = () => {
+      try {
+        const parsed = JSON.parse(text.value);
+        if (!Array.isArray(parsed)) throw new Error('必须是数组');
+        localStorage.setItem(key, JSON.stringify(parsed));
+        msg.textContent = '保存成功，刷新前台页面即可生效。';
+      } catch (e) {
+        msg.textContent = '保存失败：' + e.message;
+      }
+    };
+    document.getElementById('adminClear').onclick = () => {
+      localStorage.removeItem(key);
+      msg.textContent = '已清除本地覆盖数据。';
+    };
+  </script>
+  <script src="../data/visa-data.js"></script>
+</body>
+</html>
