@@ -9,6 +9,13 @@
 
   const data = Array.isArray(window.VISA_DATA) ? window.VISA_DATA : [];
   const byCountry = (c) => data.find((d) => d.country === c);
+  const isPolicyPage = location.pathname.toLowerCase().includes('/policy/');
+  const flagBase = isPolicyPage ? '../assets/flags/' : './assets/flags/';
+  const flagHtml = (item, size = 18) => {
+    if (!item.flagCode) return '';
+    const code = item.flagCode.toLowerCase();
+    return `<img class="flag-icon" src="${flagBase}${code}.svg" alt="${item.country}国旗" loading="lazy" decoding="async" />`;
+  };
   const fillSelect = (id, placeholder = '请选择国家') => {
     const el = document.querySelector(id);
     if (!el) return;
@@ -19,7 +26,7 @@
   if (homeCards) {
     homeCards.innerHTML = data.slice(0, 6).map((item) => `
       <a class="card card-link" href="./policy/index.html?country=${encodeURIComponent(item.country)}">
-        <h3>${item.country} · ${item.visaType}</h3>
+        <h3>${flagHtml(item)} ${item.country} · ${item.visaType}</h3>
         <p><strong>大陆护照：</strong>${item.entryRuleCN}</p>
         <p><strong>停留：</strong>${item.stay}</p>
         <p><strong>更新：</strong>${item.updatedAt || '-'}</p>
@@ -45,7 +52,7 @@
 
     listEl.innerHTML = filtered.map((d) => `
       <button class="country-item ${current && current.country === d.country ? 'active' : ''}" data-country="${d.country}">
-        <strong>${d.country}</strong>
+        <strong>${flagHtml(d)} ${d.country}</strong>
         <span>${d.entryRuleCN}</span>
       </button>
     `).join('') || '<p class="tip-muted">无匹配国家。</p>';
@@ -55,9 +62,27 @@
       return;
     }
 
+    const entryTips = current.visaRequiredCN
+      ? [
+          '入境时建议携带已获签护照、往返机票和住宿信息。',
+          '边检可能询问出行目的与停留计划，口径需与申请材料一致。',
+          `重点关注：${current.riskTips.slice(0, 1).join('') || '请确保材料真实完整'}.`
+        ]
+      : [
+          '免签不等于无条件入境，边检仍有最终裁量权。',
+          '建议准备返程/离境机票、住宿证明与基础资金证明。',
+          `重点关注：${current.riskTips.slice(0, 1).join('') || '请遵守停留天数限制'}.`
+        ];
+
+    const officialVisaUrl = (current.officialRefs && current.officialRefs[0]) || '';
+
     window.__activeCountry = current.country;
     detailEl.innerHTML = `
-      <h3>${current.country} · ${current.visaType}</h3>
+      <h3>${flagHtml(current, 20)} ${current.country} · ${current.visaType}</h3>
+      <div class="detail-cta-row">
+        ${officialVisaUrl ? `<a class="btn btn-solid" href="${officialVisaUrl}" target="_blank" rel="noopener noreferrer">前往签证官网</a>` : ''}
+      </div>
+      <h4>政策摘要</h4>
       <p><strong>适用人群：</strong>仅中国大陆普通护照</p>
       <p><strong>签证规则：</strong>${current.entryRuleCN}</p>
       <p><strong>停留规则：</strong>${current.stay}</p>
@@ -67,9 +92,12 @@
       <p><strong>面试要求：</strong>${current.interview}</p>
       <p><strong>建议递交时间：</strong>${current.leadTime}</p>
       <p><strong>官方申请路径：</strong>${current.officialStep}</p>
+      <h4>材料清单</h4>
       <p><strong>核心材料：</strong>${current.coreDocs.join('、')}</p>
       <p><strong>建议补充材料：</strong>${current.extraDocs.join('、')}</p>
       <p><strong>官方规则更新时间：</strong>${current.updatedAt || '-'}</p>
+      <h4>入境提示</h4>
+      <ul class="risk-list">${entryTips.map((x) => `<li>${x}</li>`).join('')}</ul>
       <h4>高频拒签/入境风险</h4>
       <ul class="risk-list">${current.riskTips.map((x) => `<li>${x}</li>`).join('')}</ul>
       <h4>社区高频问题与细节</h4>
@@ -109,7 +137,7 @@
     if (!table) return;
     if (!names.length) { table.innerHTML = '<p class="tip-muted">请至少选择 1 个国家。</p>'; return; }
     const rows = names.map((n) => byCountry(n)).filter(Boolean);
-    table.innerHTML = `<table><thead><tr><th>国家</th><th>签证规则</th><th>停留</th><th>时长</th><th>面试</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${r.country}</td><td>${r.entryRuleCN}</td><td>${r.stay}</td><td>${r.processing}</td><td>${r.interview}</td></tr>`).join('')}</tbody></table>`;
+    table.innerHTML = `<table><thead><tr><th>国家</th><th>签证规则</th><th>停留</th><th>时长</th><th>面试</th></tr></thead><tbody>${rows.map((r) => `<tr><td>${flagHtml(r)} ${r.country}</td><td>${r.entryRuleCN}</td><td>${r.stay}</td><td>${r.processing}</td><td>${r.interview}</td></tr>`).join('')}</tbody></table>`;
   });
 
   document.querySelector('#countBtn')?.addEventListener('click', () => {
