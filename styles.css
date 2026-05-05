@@ -216,6 +216,9 @@ body {
   color: inherit;
   position: relative;
   transition: transform .34s cubic-bezier(.22,.8,.24,1), box-shadow .34s cubic-bezier(.22,.8,.24,1) !important;
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 .card-link::after {
   content: "查看详情";
@@ -227,8 +230,8 @@ body {
   font-weight: 700;
 }
 .card-grid .card-link:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 14px 24px rgba(15, 43, 70, 0.11);
+  transform: translateY(-1px) scale(1.012);
+  box-shadow: 0 10px 20px rgba(15, 94, 168, .28);
 }
 .card h3 { margin: 0 0 10px; }
 .card p {
