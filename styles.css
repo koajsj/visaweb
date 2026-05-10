@@ -268,7 +268,7 @@ a {
 
 .quick-links {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   padding: 12px;
 }
@@ -401,8 +401,8 @@ a {
 .form-card select,
 .policy-tools input,
 .policy-tools select,
-.compare-actions input,
-.compare-actions select {
+.tool-actions input,
+.tool-actions select {
   min-height: var(--tap-size);
   width: 100%;
   border: 1px solid var(--line);
@@ -476,46 +476,133 @@ input[type="range"] {
   margin: 4px 0;
 }
 
-.compare-wrap,
+#evalBreakdown {
+  display: grid;
+  gap: 8px;
+  padding-left: 0;
+  list-style: none;
+}
+
+#evalBreakdown li {
+  margin: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--muted);
+  line-height: 1.68;
+}
+
+#evalBreakdown strong {
+  color: var(--text);
+}
+
 .countdown-box {
   padding: 16px;
 }
 
-.compare-actions {
+.tool-actions {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   align-items: center;
 }
 
-.countdown-box .compare-actions {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+.countdown-actions {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
 }
 
-.compare-table {
+.count-result {
   margin-top: 14px;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
 }
 
-.compare-table table {
-  width: 100%;
-  min-width: 660px;
-  border-collapse: collapse;
-  font-size: 14px;
+.count-summary {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #f7fbff;
+  display: grid;
+  gap: 6px;
 }
 
-.compare-table th,
-.compare-table td {
-  padding: 12px 10px;
-  border-bottom: 1px solid var(--line);
-  text-align: left;
-  vertical-align: top;
-}
-
-.compare-table th {
+.count-summary strong {
   color: var(--text);
-  background: #f2f7fb;
+  font-size: 16px;
+}
+
+.count-summary span {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.count-summary.low {
+  border-color: rgba(22, 123, 91, 0.2);
+  background: rgba(22, 123, 91, 0.07);
+}
+
+.count-summary.medium {
+  border-color: rgba(183, 107, 34, 0.22);
+  background: rgba(183, 107, 34, 0.08);
+}
+
+.count-summary.high {
+  border-color: rgba(172, 60, 48, 0.22);
+  background: rgba(172, 60, 48, 0.08);
+}
+
+.timeline {
+  position: relative;
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.timeline-step {
+  display: grid;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 12px;
+  padding: 13px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.timeline-step:hover {
+  transform: translateY(-1px);
+  border-color: rgba(18, 100, 168, 0.2);
+  box-shadow: var(--shadow-sm);
+}
+
+.timeline-step time {
+  color: var(--primary);
+  font-weight: 780;
+  white-space: nowrap;
+}
+
+.timeline-step strong,
+.timeline-step span {
+  display: block;
+}
+
+.timeline-step span {
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.timeline-step.strong {
+  border-color: rgba(18, 100, 168, 0.26);
+  background: #f2f8fd;
+}
+
+.timeline-step.danger {
+  border-color: rgba(172, 60, 48, 0.26);
+  background: rgba(172, 60, 48, 0.07);
+}
+
+.timeline-step.soft {
+  background: #fbfdff;
 }
 
 .faq {
@@ -723,8 +810,8 @@ input[type="range"] {
 .country-item:focus-visible,
 .policy-tools input:focus-visible,
 .policy-tools select:focus-visible,
-.compare-actions input:focus-visible,
-.compare-actions select:focus-visible,
+.tool-actions input:focus-visible,
+.tool-actions select:focus-visible,
 .form-card input:focus-visible,
 .form-card select:focus-visible,
 .faq summary:focus-visible {
@@ -748,13 +835,13 @@ input[type="range"] {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .compare-actions,
-  .countdown-box .compare-actions {
+  .tool-actions,
+  .countdown-actions {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .compare-actions .btn,
-  .countdown-box .compare-actions .btn {
+  .tool-actions .btn,
+  .countdown-actions .btn {
     width: 100%;
   }
 }
@@ -868,8 +955,8 @@ input[type="range"] {
   .quick-links,
   .policy-country-list,
   .detail-summary,
-  .compare-actions,
-  .countdown-box .compare-actions,
+  .tool-actions,
+  .countdown-actions,
   .policy-tools {
     grid-template-columns: 1fr;
   }
@@ -920,8 +1007,8 @@ input[type="range"] {
   .form-card select,
   .policy-tools input,
   .policy-tools select,
-  .compare-actions input,
-  .compare-actions select,
+  .tool-actions input,
+  .tool-actions select,
   .btn {
     min-height: 46px;
   }
@@ -944,9 +1031,13 @@ input[type="range"] {
     min-height: auto;
   }
 
-  .compare-table {
-    margin-left: -2px;
-    margin-right: -2px;
+  .timeline-step {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .timeline-step time {
+    font-size: 13px;
   }
 
   .mobile-quickbar {

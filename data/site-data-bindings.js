@@ -182,53 +182,88 @@
     renderCountryListAndDetail();
   };
 
-  const bindCompare = () => {
-    document.querySelector('#compareBtn')?.addEventListener('click', () => {
-      const names = ['#compareA', '#compareB', '#compareC']
-        .map((selector) => document.querySelector(selector)?.value)
-        .filter(Boolean);
-      const table = document.querySelector('#compareTable');
-      if (!table) return;
-      if (!names.length) {
-        table.innerHTML = '<p class="tip-muted">请至少选择 1 个国家。</p>';
-        return;
-      }
-
-      const rows = names.map(byCountry).filter(Boolean);
-      table.innerHTML = `
-        <table>
-          <thead><tr><th>国家</th><th>规则</th><th>停留</th><th>时长</th><th>面试</th></tr></thead>
-          <tbody>${rows.map((item) => `
-            <tr>
-              <td>${flagHtml(item)}${escapeHtml(item.country)}</td>
-              <td>${escapeHtml(item.entryRuleCN)}</td>
-              <td>${escapeHtml(item.stay)}</td>
-              <td>${escapeHtml(item.processing)}</td>
-              <td>${escapeHtml(item.interview)}</td>
-            </tr>`).join('')}</tbody>
-        </table>`;
-    });
-  };
-
   const bindCountdown = () => {
+    const dayMs = 24 * 60 * 60 * 1000;
+    const formatDate = (date) => date.toISOString().slice(0, 10);
+    const addDays = (date, days) => new Date(date.getTime() + days * dayMs);
+    const daysBetween = (from, to) => Math.ceil((to.getTime() - from.getTime()) / dayMs);
+    const getPlan = (item, readiness, urgency) => {
+      const countryPlans = {
+        '美国': { ideal: 90, latest: 45, review: 21, buffer: 14, type: '面签预约', focus: 'DS-160、缴费、预约和面谈材料口径' },
+        '英国': { ideal: 60, latest: 28, review: 15, buffer: 10, type: '在线申请', focus: '资金来源、访问目的和离境意图' },
+        '法国（申根）': { ideal: 60, latest: 25, review: 14, buffer: 10, type: '申根预约', focus: '保险、主停留国、机酒交通一致性' },
+        '德国（申根）': { ideal: 60, latest: 25, review: 14, buffer: 10, type: '申根预约', focus: '保险、翻译件、资金流水和交通衔接' },
+        '加拿大': { ideal: 75, latest: 35, review: 20, buffer: 14, type: '在线申请+生物信息', focus: '生物信息预约、补料响应和资金来源' },
+        '澳大利亚': { ideal: 65, latest: 30, review: 18, buffer: 12, type: '在线申请', focus: '真实访客意图、资金闭环和临时访问说明' },
+        '新西兰': { ideal: 65, latest: 30, review: 18, buffer: 12, type: '在线申请', focus: '资金、离境计划和真实访问意图' },
+        '日本': { ideal: 45, latest: 18, review: 9, buffer: 7, type: '材料递交', focus: '在职/在读证明、日程表和资金证明' },
+        '韩国': { ideal: 40, latest: 16, review: 8, buffer: 7, type: '材料递交', focus: '照片规格、资产证明和行程真实性' }
+      };
+      const visaFreePlans = {
+        '新加坡': { ideal: 7, latest: 3, review: 2, buffer: 1, type: '免签入境核查', focus: 'SG Arrival Card、护照有效期、离境机票和住宿' },
+        '泰国': { ideal: 7, latest: 3, review: 2, buffer: 1, type: '免签入境核查', focus: '护照有效期、返程机票、住宿和停留天数' }
+      };
+      const base = item.visaRequiredCN
+        ? (countryPlans[item.country] || { ideal: 55, latest: 24, review: 12, buffer: 8, type: '签证申请', focus: '资金、行程和材料一致性' })
+        : (visaFreePlans[item.country] || { ideal: 7, latest: 3, review: 2, buffer: 1, type: '免签入境核查', focus: '护照、离境机票、住宿和停留限制' });
+
+      const readinessPenalty = readiness === 'none' ? 10 : readiness === 'partial' ? 4 : 0;
+      const urgencyBuffer = urgency === 'peak' ? 10 : urgency === 'urgent' ? -7 : 0;
+      const ideal = Math.max(base.latest + 3, base.ideal + readinessPenalty + urgencyBuffer);
+      const latest = Math.max(base.review + 2, base.latest + Math.max(0, readinessPenalty - 4));
+      return { ...base, ideal, latest };
+    };
+    const renderStep = (date, title, desc, tone = '') => `
+      <div class="timeline-step ${tone}">
+        <time>${formatDate(date)}</time>
+        <div><strong>${title}</strong><span>${desc}</span></div>
+      </div>
+    `;
+
     document.querySelector('#countBtn')?.addEventListener('click', () => {
       const country = document.querySelector('#countCountry')?.value;
       const date = document.querySelector('#departDate')?.value;
+      const readiness = document.querySelector('#countReadiness')?.value || 'partial';
+      const urgency = document.querySelector('#countUrgency')?.value || 'normal';
       const out = document.querySelector('#countResult');
       const item = byCountry(country);
-      if (!item || !date || !out) return;
-
-      if (!item.visaRequiredCN) {
-        out.textContent = `${item.country} 当前为免签入境，建议仍在出发前 3-7 天核查护照有效期、返程机票和住宿信息。`;
+      if (!out) return;
+      if (!item || !date) {
+        out.innerHTML = '<p class="tip-muted">请选择国家和出发日期后生成时间线。</p>';
         return;
       }
 
       const depart = new Date(`${date}T00:00:00`);
-      const latest = new Date(depart);
-      const safe = new Date(depart);
-      latest.setDate(latest.getDate() - 20);
-      safe.setDate(safe.getDate() - 45);
-      out.textContent = `针对 ${item.country}：最晚建议 ${latest.toISOString().slice(0, 10)} 前提交；更稳妥的时间是 ${safe.toISOString().slice(0, 10)} 前。`;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const remaining = daysBetween(today, depart);
+      const plan = getPlan(item, readiness, urgency);
+      const idealDate = addDays(depart, -plan.ideal);
+      const latestDate = addDays(depart, -plan.latest);
+      const reviewDate = addDays(depart, -plan.review);
+      const finalDate = addDays(depart, -plan.buffer);
+      const isLate = today > latestDate;
+      const isTight = today > idealDate && today <= latestDate;
+      const status = isLate ? 'high' : isTight ? 'medium' : 'low';
+      const statusText = isLate ? '时间偏紧' : isTight ? '仍可推进' : '时间充足';
+      const primaryAdvice = isLate
+        ? '建议立刻确认预约/递交通道，并优先补齐硬性材料；如预约不可控，需准备调整行程。'
+        : isTight
+          ? '建议本周内完成材料核对和预约，避免补料或预约紧张压缩行程。'
+          : '可以按稳妥节奏准备，先完成材料闭环，再递交或预约。';
+
+      out.innerHTML = `
+        <div class="count-summary ${status}">
+          <strong>${item.country} · ${plan.type}</strong>
+          <span>${statusText}，距离出发 ${remaining} 天。${primaryAdvice}</span>
+        </div>
+        <div class="timeline">
+          ${renderStep(idealDate, '稳妥启动', `开始整理材料。重点：${plan.focus}。`, 'soft')}
+          ${renderStep(latestDate, item.visaRequiredCN ? '建议最晚递交/预约' : '最晚完成入境材料核查', item.visaRequiredCN ? '晚于此日期会明显压缩补料、预约和出签缓冲。' : '免签目的地仍需完成护照、离境机票、住宿和入境卡核查。', isLate ? 'danger' : 'strong')}
+          ${renderStep(reviewDate, '补料与结果缓冲', item.visaRequiredCN ? '预留补料、行政处理、快递或取件时间。' : '再次确认停留天数、住宿和离境安排。')}
+          ${renderStep(finalDate, '出发前最终核查', '检查护照、签证/入境许可、机票、住宿、保险、资金证明和官方最新公告。')}
+        </div>
+      `;
     });
   };
 
@@ -263,8 +298,7 @@
 
   renderHomeCards();
   bindPolicyPage();
-  ['#evalCountry', '#compareA', '#compareB', '#compareC', '#countCountry', '#faqCountry'].forEach((selector) => fillSelect(selector));
-  bindCompare();
+  ['#evalCountry', '#countCountry', '#faqCountry'].forEach((selector) => fillSelect(selector));
   bindCountdown();
   bindFaq();
 })();

@@ -39,7 +39,6 @@
     <section class="container block reveal">
       <div class="quick-links card">
         <a href="#autoEval">材料评估</a>
-        <a href="#compareSection">国家对比</a>
         <a href="#countdownSection">时间倒推</a>
         <a href="#faqSection">常见问题</a>
       </div>
@@ -57,12 +56,19 @@
           <label>目标国家<select id="evalCountry" required><option value="">请选择国家</option></select></label>
           <label>出行目的<select id="evalPurpose" required><option value="tourism">旅游</option><option value="business">商务</option><option value="visit">探亲访友</option></select></label>
           <label>预计停留天数<select id="evalStayDays" required><option value="short" selected>7 天内</option><option value="mid">8-15 天</option><option value="long">16 天以上</option></select></label>
+          <label>身份状态<select id="evalProfile" required><option value="employee" selected>稳定在职</option><option value="student">在读学生</option><option value="owner">企业主/个体经营</option><option value="freelance">自由职业</option><option value="retired">退休</option><option value="unemployed">暂无固定工作</option></select></label>
           <label>月收入（人民币）<select id="evalIncome" required><option value="low">5000 以下</option><option value="mid" selected>5000 - 20000</option><option value="high">20000 以上</option></select></label>
-          <label>过往出境记录<select id="evalTravel" required><option value="none">无</option><option value="some" selected>1-3 次</option><option value="many">4 次及以上</option></select></label>
+          <label>过往出境记录<select id="evalTravel" required><option value="none">无出境记录</option><option value="asia" selected>有亚洲短途记录</option><option value="some">有 1-3 次发达国家/申根记录</option><option value="many">4 次及以上良好记录</option></select></label>
           <label>是否有拒签史<select id="evalRefusal" required><option value="no" selected>无拒签史</option><option value="yes">有拒签史</option></select></label>
+          <label>护照有效期<select id="evalPassport" required><option value="weak">不足 6 个月</option><option value="normal" selected>6-12 个月</option><option value="strong">12 个月以上</option></select></label>
           <label>资金余额覆盖行程<select id="evalFund" required><option value="weak">不足 1 倍</option><option value="normal" selected>1-2 倍</option><option value="strong">2 倍以上</option></select></label>
+          <label>资金来源解释<select id="evalFundSource" required><option value="weak">来源难解释</option><option value="normal" selected>工资/日常流水基本匹配</option><option value="strong">收入、余额、行程预算闭环清晰</option></select></label>
           <label>行程真实性<select id="evalPlan" required><option value="basic">基础</option><option value="clear" selected>清晰</option><option value="strong">完整可核验</option></select></label>
+          <label>机酒/邀请材料<select id="evalBooking" required><option value="none">暂未准备</option><option value="basic" selected>有基础预订或邀请说明</option><option value="strong">日期、住宿、交通、邀请关系一致</option></select></label>
           <label>材料翻译/公证准备<select id="evalDocLegal" required><option value="no">未准备</option><option value="part" selected>部分准备</option><option value="yes">准备完整</option></select></label>
+          <label>保险/生物信息/面谈准备<select id="evalProcedure" required><option value="weak">未确认要求</option><option value="normal" selected>已了解基本流程</option><option value="strong">已按国家要求准备</option></select></label>
+          <label>国内约束力<select id="evalTies" required><option value="weak">证明较弱</option><option value="normal" selected>工作/学业/家庭有基本证明</option><option value="strong">工作、家庭、资产或学业证明完整</option></select></label>
+          <label>表格/口径一致性<select id="evalConsistency" required><option value="weak">尚未核对</option><option value="normal" selected>已核对主要信息</option><option value="strong">申请表、行程、资金、证明材料已逐项核对</option></select></label>
           <label>材料完整度 <span id="evalDocsValue" class="range-value">80%</span><input id="evalDocs" type="range" min="40" max="100" step="5" value="80" /></label>
           <label class="check-label"><input id="evalJob" type="checkbox" checked /> 有稳定工作/在读证明</label>
           <button class="btn btn-solid" type="submit">开始评估</button>
@@ -77,35 +83,32 @@
       </div>
     </section>
 
-    <section id="compareSection" class="container block reveal">
-      <div class="block-head"><h2>国家对比</h2></div>
-      <div class="compare-wrap card">
-        <div class="compare-actions">
-          <select id="compareA"></select>
-          <select id="compareB"></select>
-          <select id="compareC"></select>
-          <button id="compareBtn" class="btn btn-solid" type="button">开始对比</button>
-        </div>
-        <div id="compareTable" class="compare-table"></div>
-      </div>
-    </section>
-
     <section id="countdownSection" class="container block reveal">
       <div class="block-head"><h2>办理时间倒推器</h2></div>
       <div class="card countdown-box">
-        <div class="compare-actions">
+        <div class="tool-actions countdown-actions">
           <select id="countCountry"></select>
           <input id="departDate" type="date" />
-          <button id="countBtn" class="btn btn-solid" type="button">计算时间</button>
+          <select id="countReadiness">
+            <option value="none">材料尚未开始</option>
+            <option value="partial" selected>材料已准备一部分</option>
+            <option value="ready">材料基本齐全</option>
+          </select>
+          <select id="countUrgency">
+            <option value="normal" selected>常规递交</option>
+            <option value="peak">旺季/预约紧张</option>
+            <option value="urgent">临近出发</option>
+          </select>
+          <button id="countBtn" class="btn btn-solid" type="button">生成时间线</button>
         </div>
-        <p id="countResult" class="tip-muted">输入国家和出发日期后自动计算最晚提交时间。</p>
+        <div id="countResult" class="count-result tip-muted">输入国家和出发日期后生成准备、递交、补料和出发前核查时间线。</div>
       </div>
     </section>
 
     <section id="faqSection" class="container block reveal">
       <div class="block-head"><h2>常见问题</h2></div>
       <div class="card">
-        <div class="compare-actions"><select id="faqCountry"></select></div>
+        <div class="tool-actions"><select id="faqCountry"></select></div>
         <div id="smartFaq" class="faq"></div>
       </div>
     </section>
@@ -115,7 +118,7 @@
   <nav class="mobile-quickbar" aria-label="移动端快捷导航">
     <a href="./policy/index.html">政策</a>
     <a href="#autoEval">评估</a>
-    <a href="#compareSection">对比</a>
+    <a href="#countdownSection">时间</a>
     <a href="#faqSection">问答</a>
   </nav>
   <script src="./app.js"></script>
