@@ -3,15 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0e2a47" />
-  <title>VisaWeb 签证服务</title>
-  <meta name="description" content="VisaWeb 提供热门国家签证政策、材料清单、风险提示与自动评估，界面简洁，体验流畅。" />
+  <meta name="theme-color" content="#f7fafc" />
+  <title>VisaWeb 中国大陆护照签证信息</title>
+  <meta name="description" content="VisaWeb 汇总中国大陆普通护照常见目的地签证政策、材料清单、风险提示与出行准备时间。" />
   <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="./styles.css" />
 </head>
-<body>
-  <div class="bg-orb orb-a" aria-hidden="true"></div>
-  <div class="bg-orb orb-b" aria-hidden="true"></div>
+<body class="has-mobile-quickbar">
   <header class="topbar">
     <div class="container topbar-inner">
       <a class="brand" href="./index.html" aria-label="VisaWeb 首页"><span class="brand-mark">V</span><span class="brand-name">VisaWeb</span></a>
@@ -25,17 +23,22 @@
   </header>
   <main id="home">
     <section class="hero container reveal show">
-      <p class="tag">签证信息平台</p>
-      <h1>签证办理更清晰，出行准备更省心</h1>
-      <p class="hero-sub">聚合热门国家签证类型、材料要求和办理建议，一页完成信息筛选。</p>
+      <p class="tag">中国大陆普通护照</p>
+      <h1>常见目的地签证政策与材料准备</h1>
+      <p class="hero-sub">按国家查看签证规则、停留时间、材料清单、常见风险和官方链接。</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="./policy/index.html">查看签证政策</a>
+      </div>
+      <div class="hero-facts" aria-label="站点内容摘要">
+        <div><strong>11</strong><span>目的地</span></div>
+        <div><strong>材料</strong><span>清单整理</span></div>
+        <div><strong>风险</strong><span>高频问题</span></div>
       </div>
     </section>
 
     <section class="container block reveal">
       <div class="quick-links card">
-        <a href="#autoEval">自动评估</a>
+        <a href="#autoEval">材料评估</a>
         <a href="#compareSection">国家对比</a>
         <a href="#countdownSection">时间倒推</a>
         <a href="#faqSection">常见问题</a>
@@ -48,7 +51,7 @@
     </section>
 
     <section id="autoEval" class="container block reveal">
-      <div class="block-head"><h2>签证自动评估</h2></div>
+      <div class="block-head"><h2>材料准备评估</h2></div>
       <div class="apply-grid">
         <form id="visaEvalForm" class="card form-card" action="#" method="post">
           <label>目标国家<select id="evalCountry" required><option value="">请选择国家</option></select></label>
@@ -60,15 +63,15 @@
           <label>资金余额覆盖行程<select id="evalFund" required><option value="weak">不足 1 倍</option><option value="normal" selected>1-2 倍</option><option value="strong">2 倍以上</option></select></label>
           <label>行程真实性<select id="evalPlan" required><option value="basic">基础</option><option value="clear" selected>清晰</option><option value="strong">完整可核验</option></select></label>
           <label>材料翻译/公证准备<select id="evalDocLegal" required><option value="no">未准备</option><option value="part" selected>部分准备</option><option value="yes">准备完整</option></select></label>
-          <label>材料完整度<input id="evalDocs" type="range" min="40" max="100" step="5" value="80" /></label>
-          <label><input id="evalJob" type="checkbox" checked /> 有稳定工作/在读证明</label>
+          <label>材料完整度 <span id="evalDocsValue" class="range-value">80%</span><input id="evalDocs" type="range" min="40" max="100" step="5" value="80" /></label>
+          <label class="check-label"><input id="evalJob" type="checkbox" checked /> 有稳定工作/在读证明</label>
           <button class="btn btn-solid" type="submit">开始评估</button>
         </form>
         <aside class="card tip-card">
           <h3>评估结果</h3>
           <p id="evalRate">通过率：--</p>
           <p id="evalLevel">风险等级：--</p>
-          <p id="evalAdvice" class="tip-muted">填写信息后可生成建议。</p>
+          <p id="evalAdvice" class="tip-muted">填写信息后显示准备建议。</p>
           <ul id="evalBreakdown" class="risk-list"><li>将显示分项评分。</li></ul>
         </aside>
       </div>
@@ -108,7 +111,13 @@
     </section>
 
   </main>
-  <footer class="container footer reveal"><p>© 2026 VisaWeb · 签证信息服务平台</p></footer>
+  <footer class="container footer reveal"><p>© 2026 VisaWeb · 中国大陆护照签证信息</p></footer>
+  <nav class="mobile-quickbar" aria-label="移动端快捷导航">
+    <a href="./policy/index.html">政策</a>
+    <a href="#autoEval">评估</a>
+    <a href="#compareSection">对比</a>
+    <a href="#faqSection">问答</a>
+  </nav>
   <script src="./app.js"></script>
   <script src="./data/visa-data.js"></script>
   <script src="./data/site-data-bindings.js"></script>

@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f7fafc" />
   <title>签证政策 - VisaWeb</title>
+  <meta name="description" content="按国家查询中国大陆普通护照签证政策、停留规则、材料清单、常见风险与官方参考链接。" />
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../styles.css" />
 </head>
-<body>
+<body class="has-mobile-quickbar">
   <header class="topbar">
     <div class="container topbar-inner">
       <a class="brand" href="../index.html"><span class="brand-mark">V</span><span class="brand-name">VisaWeb</span></a>
@@ -16,13 +18,19 @@
     </div>
   </header>
 
-  <main class="container block reveal show">
-    <div class="block-head"><h2>中国大陆护照签证政策库</h2></div>
+  <main class="container policy-main block reveal show">
+    <div class="block-head policy-page-head">
+      <div>
+        <p class="tag">中国大陆普通护照</p>
+        <h2>签证政策库</h2>
+      </div>
+    </div>
     <div class="policy-tools card">
       <input id="policySearch" type="search" placeholder="搜索国家" />
       <select id="policyRegion"><option value="全部">全部地区</option><option value="亚洲">亚洲</option><option value="欧洲">欧洲</option><option value="美洲">美洲</option><option value="大洋洲">大洋洲</option></select>
       <button id="policyReset" class="btn btn-ghost" type="button">重置</button>
     </div>
+    <p id="policyMeta" class="policy-meta">正在加载国家列表。</p>
 
     <section class="policy-detail-layout">
       <aside class="card policy-country-list" id="policyCountryList"></aside>
@@ -32,6 +40,12 @@
     </section>
   </main>
 
+  <nav class="mobile-quickbar" aria-label="移动端快捷导航">
+    <a href="../index.html">首页</a>
+    <a href="#policySearch">搜索</a>
+    <a href="#policyCountryList">列表</a>
+    <a href="#policyDetailPane">详情</a>
+  </nav>
   <script src="../app.js"></script>
   <script src="../data/visa-data.js"></script>
   <script src="../data/site-data-bindings.js"></script>

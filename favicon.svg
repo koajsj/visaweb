@@ -1,19 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#5f8cff"/>
-      <stop offset="100%" style="stop-color:#3b6cd4"/>
+      <stop offset="0%" stop-color="#1264a8"/>
+      <stop offset="100%" stop-color="#2f9f8f"/>
     </linearGradient>
   </defs>
-  <!-- �o -->
-  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
-  <!-- �:� -->
-  <g fill="white" transform="translate(256,230)">
-    <path d="M180 -40 L200 -20 L100 40 L80 20 L180 -40 Z M-120 -40 L-100 -20 L-200 40 L-220 20 L-120 -40 Z" opacity="0.6"/>
-    <ellipse cx="0" cy="0" rx="140" ry="80" fill="none" stroke="white" stroke-width="24" stroke-dasharray="60 20"/>
-    <circle cx="0" cy="-20" r="60"/>
-    <path d="M-40 30 L40 30 L60 80 L-60 80 Z"/>
-  </g>
-  <!-- �W -->
-  <text x="256" y="450" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">0C~�</text>
+  <rect width="512" height="512" rx="104" fill="url(#bg)"/>
+  <path d="M126 142h260c18 0 32 14 32 32v184c0 18-14 32-32 32H126c-18 0-32-14-32-32V174c0-18 14-32 32-32Z" fill="white" opacity=".94"/>
+  <path d="M146 206h110M146 252h190M146 298h150" stroke="#1264a8" stroke-width="22" stroke-linecap="round"/>
+  <path d="M336 218l20 40 44 6-32 31 8 44-40-21-40 21 8-44-32-31 44-6 20-40Z" fill="#2f9f8f"/>
 </svg>
