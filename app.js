@@ -38,6 +38,15 @@
   const listHtml = (items = []) => items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
   const paragraphHtml = (text) => escapeHtml(text).replaceAll('\n', '<br />');
 
+  const hostLabel = (url) => {
+    try {
+      const host = new URL(url).hostname.replace(/^www\./, '');
+      return host || url;
+    } catch (error) {
+      return url;
+    }
+  };
+
   const flagHtml = (item) => {
     if (!item?.flagCode) return '';
     const country = escapeHtml(item.country);
@@ -222,15 +231,23 @@
     if (!listEl || !detailEl) return;
 
     const filtered = getFilteredCountries();
+    if (metaEl) {
+      metaEl.textContent = filtered.length
+        ? `共 ${filtered.length} 个匹配国家。先看规则，再看材料和风险，最后点开官方入口复核。`
+        : '没有找到匹配国家。可以清空关键词或切换地区后再看详情。';
+    }
+
+    if (!filtered.length) {
+      listEl.innerHTML = '<p class="tip-muted">没有匹配结果，换个关键词或地区再试。</p>';
+      detailEl.innerHTML = '<p class="tip-muted">没有匹配结果，请清空搜索或切换地区后再查看国家详情。</p>';
+      return;
+    }
+
     if (!filtered.some((item) => item.country === activeCountry)) {
       activeCountry = filtered[0]?.country || data[0]?.country || '';
     }
 
     const current = byCountry(activeCountry);
-
-    if (metaEl) {
-      metaEl.textContent = `共 ${filtered.length} 个匹配国家。先看规则，再看材料和风险，最后点开官方入口复核。`;
-    }
 
     listEl.innerHTML = filtered.map((item) => `
       <button class="country-item ${item.country === activeCountry ? 'active' : ''}" data-country="${escapeHtml(item.country)}" type="button">
@@ -248,6 +265,12 @@
     const prepSteps = buildPrepSteps(current);
     const riskItems = buildRiskItems(current);
     const entryTips = buildEntryTips(current);
+    const detailChips = [
+      current.region,
+      current.visaRequiredCN ? '需签证' : '免签',
+      current.interview || '以官方要求为准',
+      current.updatedAt ? `更新 ${current.updatedAt}` : ''
+    ].filter(Boolean);
 
     detailEl.innerHTML = `
       <div class="detail-title-row">
@@ -255,6 +278,7 @@
         <span class="status-pill ${current.visaRequiredCN ? 'need' : 'free'}">${current.visaRequiredCN ? '需签证' : '免签'}</span>
       </div>
       <p class="tip-muted">${escapeHtml(current.entryRuleCN)}。${escapeHtml(current.visaRequiredCN ? '材料、预约和口径一致性是核心。' : '重点是停留天数、护照有效期和入境解释。')}</p>
+      <div class="detail-chips">${detailChips.map((chip) => `<span class="detail-chip">${escapeHtml(chip)}</span>`).join('')}</div>
       <div class="detail-cta-row">
         ${officialUrl ? `<a class="btn btn-solid" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">打开官方入口</a>` : ''}
       </div>
@@ -273,7 +297,14 @@
       <h4>入境提示</h4>
       <ul class="risk-list">${listHtml(entryTips)}</ul>
       <h4>官方参考链接</h4>
-      <ul class="risk-list official-links">${(current.officialRefs || []).map((url) => `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`).join('')}</ul>
+      <ul class="official-links">${(current.officialRefs || []).map((url) => `
+        <li>
+          <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+            <strong>${escapeHtml(hostLabel(url))}</strong>
+            <span>${escapeHtml(url)}</span>
+          </a>
+        </li>
+      `).join('')}</ul>
       <p class="tip-muted">提示：任何签证或入境规则都可能临时调整，递交前请以目的地官方公告和使领馆页面为最终依据。</p>
     `;
   };
