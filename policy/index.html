@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#f7fafc" />
-  <title>签证政策 - VisaWeb</title>
-  <meta name="description" content="按国家查询中国大陆普通护照签证政策、停留规则、材料清单、常见风险与官方参考链接。" />
+  <meta name="theme-color" content="#edf2fb" />
+  <title>签证政策库 - VisaWeb</title>
+  <meta name="description" content="按国家查询中国大陆普通护照签证政策、停留规则、材料清单、常见风险、准备顺序和官方参考链接。" />
   <link rel="icon" href="../favicon.svg" type="image/svg+xml" />
   <link rel="stylesheet" href="../styles.css" />
 </head>
@@ -26,11 +26,11 @@
       </div>
     </div>
     <div class="policy-tools card">
-      <input id="policySearch" type="search" placeholder="搜索国家" />
+      <input id="policySearch" type="search" placeholder="搜索国家、签证类型或关键词" />
       <select id="policyRegion"><option value="全部">全部地区</option><option value="亚洲">亚洲</option><option value="欧洲">欧洲</option><option value="美洲">美洲</option><option value="大洋洲">大洋洲</option></select>
       <button id="policyReset" class="btn btn-ghost" type="button">重置</button>
     </div>
-    <p id="policyMeta" class="policy-meta">正在加载国家列表。</p>
+    <p id="policyMeta" class="policy-meta">先筛国家，再看规则、材料和风险，最后点开官方入口复核。</p>
 
     <section class="policy-detail-layout">
       <aside class="card policy-country-list" id="policyCountryList"></aside>
