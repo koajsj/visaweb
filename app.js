@@ -1,6 +1,12 @@
 ﻿(() => {
   const storageKey = 'visa_data_override_v1';
-  const localOverride = localStorage.getItem(storageKey);
+  let localOverride = null;
+
+  try {
+    localOverride = localStorage.getItem(storageKey);
+  } catch (error) {
+    console.warn('无法读取本地签证数据覆盖，已使用默认数据。', error);
+  }
 
   if (localOverride) {
     try {
@@ -37,6 +43,7 @@
   const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
   const listHtml = (items = []) => items.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
   const paragraphHtml = (text) => escapeHtml(text).replaceAll('\n', '<br />');
+  const addDays = (date, days) => new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
 
   const hostLabel = (url) => {
     try {
@@ -55,6 +62,48 @@
 
   const joinList = (items = [], separator = '、') => items.filter(Boolean).join(separator);
 
+  const getLatestUpdate = () => {
+    const dates = data.map((item) => item.updatedAt).filter(Boolean).sort();
+    return dates[dates.length - 1] || '待核对';
+  };
+
+  const setDefaultCountry = (selector) => {
+    const select = document.querySelector(selector);
+    if (!select || select.value || !data[0]) return;
+    select.value = data[0].country;
+  };
+
+  const setValue = (selector, value) => {
+    const element = document.querySelector(selector);
+    if (element && value !== null && value !== undefined) element.value = value;
+  };
+
+  const getPolicyControlState = () => ({
+    keyword: (document.querySelector('#policySearch')?.value || '').trim(),
+    region: document.querySelector('#policyRegion')?.value || '全部',
+    status: document.querySelector('#policyStatus')?.value || '全部'
+  });
+
+  const updatePolicyUrl = () => {
+    if (!document.querySelector('#policyCountryList')) return;
+    const { keyword, region, status } = getPolicyControlState();
+    const params = new URLSearchParams();
+    if (activeCountry) params.set('country', activeCountry);
+    if (keyword) params.set('q', keyword);
+    if (region !== '全部') params.set('region', region);
+    if (status !== '全部') params.set('status', status);
+    const query = params.toString();
+    history.replaceState(null, '', `${location.pathname}${query ? `?${query}` : ''}`);
+  };
+
+  const syncPolicyControlsFromUrl = () => {
+    const params = new URLSearchParams(location.search);
+    setValue('#policySearch', params.get('q') || '');
+    setValue('#policyRegion', params.get('region') || '全部');
+    setValue('#policyStatus', params.get('status') || '全部');
+    activeCountry = params.get('country') || activeCountry;
+  };
+
   const renderHeroFacts = () => {
     const target = document.querySelector('.hero-facts');
     if (!target) return;
@@ -67,6 +116,7 @@
       <div><strong>${total}</strong><span>目的地</span></div>
       <div><strong>${visaRequired}</strong><span>需要签证</span></div>
       <div><strong>${visaFree}</strong><span>免签入境</span></div>
+      <div><strong>${escapeHtml(getLatestUpdate())}</strong><span>数据更新</span></div>
     `;
   };
 
@@ -115,21 +165,41 @@
         <p><strong>规则：</strong>${escapeHtml(item.entryRuleCN)}</p>
         <p><strong>停留：</strong>${escapeHtml(item.stay)}</p>
         <p><strong>节奏：</strong>${escapeHtml(item.leadTime)}</p>
+        <div class="country-card-meta">
+          <span>${escapeHtml(item.interview || '流程以官方为准')}</span>
+          <span>${escapeHtml((item.officialRefs || []).length)} 个官方入口</span>
+        </div>
         <span class="card-more">查看材料、风险与官方链接</span>
       </a>
     `).join('');
   };
 
   const getFilteredCountries = () => {
-    const keyword = (document.querySelector('#policySearch')?.value || '').trim().toLowerCase();
-    const region = document.querySelector('#policyRegion')?.value || '全部';
+    const { keyword, region, status } = getPolicyControlState();
+    const normalizedKeyword = keyword.toLowerCase();
 
     return data.filter((item) => {
       const matchRegion = region === '全部' || item.region === region;
-      const searchable = [item.country, item.region, item.visaType, item.entryRuleCN, item.stay, item.processing, item.leadTime]
+      const matchStatus = status === '全部'
+        || (status === 'visa' && item.visaRequiredCN)
+        || (status === 'free' && !item.visaRequiredCN);
+      const searchable = [
+        item.country,
+        item.region,
+        item.visaType,
+        item.entryRuleCN,
+        item.stay,
+        item.processing,
+        item.leadTime,
+        item.officialStep,
+        ...(item.coreDocs || []),
+        ...(item.extraDocs || []),
+        ...(item.riskTips || []),
+        ...(item.communityIssues || [])
+      ]
         .join(' ')
         .toLowerCase();
-      return matchRegion && (!keyword || searchable.includes(keyword));
+      return matchRegion && matchStatus && (!normalizedKeyword || searchable.includes(normalizedKeyword));
     });
   };
 
@@ -232,8 +302,10 @@
 
     const filtered = getFilteredCountries();
     if (metaEl) {
+      const visaRequiredCount = filtered.filter((item) => item.visaRequiredCN).length;
+      const visaFreeCount = filtered.length - visaRequiredCount;
       metaEl.textContent = filtered.length
-        ? `共 ${filtered.length} 个匹配国家。先看规则，再看材料和风险，最后点开官方入口复核。`
+        ? `共 ${filtered.length} 个匹配国家，其中 ${visaRequiredCount} 个需签证、${visaFreeCount} 个免签。先看规则，再看材料和风险，最后点开官方入口复核。`
         : '没有找到匹配国家。可以清空关键词或切换地区后再看详情。';
     }
 
@@ -269,7 +341,8 @@
       current.region,
       current.visaRequiredCN ? '需签证' : '免签',
       current.interview || '以官方要求为准',
-      current.updatedAt ? `更新 ${current.updatedAt}` : ''
+      current.updatedAt ? `整理 ${current.updatedAt}` : '',
+      current.verifiedAt ? `本站核对 ${current.verifiedAt}` : ''
     ].filter(Boolean);
 
     detailEl.innerHTML = `
@@ -289,6 +362,17 @@
         <p><strong>建议提前</strong><span>${escapeHtml(current.leadTime)}</span></p>
         <p><strong>更新日期</strong><span>${escapeHtml(current.updatedAt || '未标注')}</span></p>
         <p><strong>面谈/核验</strong><span>${escapeHtml(current.interview || '以官方要求为准')}</span></p>
+      </div>
+      <div class="source-panel">
+        <strong>来源可信度</strong>
+        <span>本站核对：${escapeHtml(current.verifiedAt || current.updatedAt || '未标注')}</span>
+        <span>官方页面更新时间：${escapeHtml(current.sourceUpdatedAt || '以官方页面显示为准')}</span>
+        <p>${escapeHtml(current.sourceNote || '本站为静态整理信息，递交或出行前请以官方参考链接为准。')}</p>
+      </div>
+      <div class="detail-focus-grid">
+        <div><strong>递交路径</strong><span>${escapeHtml(current.officialStep)}</span></div>
+        <div><strong>第一优先级</strong><span>${escapeHtml(prepSteps[0] || '先核对官方要求。')}</span></div>
+        <div><strong>最易出错</strong><span>${escapeHtml(riskItems[0] || '材料、行程和资金口径不一致。')}</span></div>
       </div>
       <h4>准备顺序</h4>
       <ul class="risk-list">${listHtml(prepSteps)}</ul>
@@ -317,29 +401,38 @@
       const button = event.target.closest('.country-item');
       if (!button?.dataset.country) return;
       activeCountry = button.dataset.country;
-      history.replaceState(null, '', `?country=${encodeURIComponent(activeCountry)}`);
       renderPolicy();
+      updatePolicyUrl();
       if (window.matchMedia('(max-width: 980px)').matches) {
         document.querySelector('#policyDetailPane')?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
       }
     });
 
-    ['#policySearch', '#policyRegion'].forEach((selector) => {
-      document.querySelector(selector)?.addEventListener('input', renderPolicy);
-      document.querySelector(selector)?.addEventListener('change', renderPolicy);
+    const handleFilterChange = () => {
+      renderPolicy();
+      updatePolicyUrl();
+    };
+
+    ['#policySearch', '#policyRegion', '#policyStatus'].forEach((selector) => {
+      document.querySelector(selector)?.addEventListener('input', handleFilterChange);
+      document.querySelector(selector)?.addEventListener('change', handleFilterChange);
     });
 
     document.querySelector('#policyReset')?.addEventListener('click', () => {
       const search = document.querySelector('#policySearch');
       const region = document.querySelector('#policyRegion');
+      const status = document.querySelector('#policyStatus');
       if (search) search.value = '';
       if (region) region.value = '全部';
+      if (status) status.value = '全部';
       activeCountry = data[0]?.country || '';
       history.replaceState(null, '', location.pathname);
       renderPolicy();
     });
 
+    syncPolicyControlsFromUrl();
     renderPolicy();
+    updatePolicyUrl();
   };
 
   const initEval = () => {
@@ -498,6 +591,16 @@
         `;
       }
     });
+
+    form.addEventListener('change', () => {
+      if (get('#evalCountry')) form.requestSubmit();
+    });
+
+    docRange?.addEventListener('input', () => {
+      if (get('#evalCountry')) form.requestSubmit();
+    });
+
+    if (get('#evalCountry')) form.requestSubmit();
   };
 
   const bindCountdown = () => {
@@ -505,8 +608,14 @@
     if (!button) return;
 
     const dayMs = 24 * 60 * 60 * 1000;
-    const addDays = (date, days) => new Date(date.getTime() + days * dayMs);
     const daysBetween = (from, to) => Math.ceil((to.getTime() - from.getTime()) / dayMs);
+    const dateInput = document.querySelector('#departDate');
+    const todayForInput = new Date();
+    todayForInput.setHours(0, 0, 0, 0);
+    if (dateInput) {
+      dateInput.min = formatDate(todayForInput);
+      if (!dateInput.value) dateInput.value = formatDate(addDays(todayForInput, 45));
+    }
 
     const planByCountry = {
       美国: { ideal: 90, latest: 45, review: 21, buffer: 14, type: '面签预约', focus: 'DS-160、资金证明、行程口径和面签回答' },
@@ -549,6 +658,11 @@
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       depart.setHours(0, 0, 0, 0);
+
+      if (Number.isNaN(depart.getTime()) || depart < today) {
+        output.innerHTML = '<p class="tip-muted">出发日期不能早于今天，请重新选择日期。</p>';
+        return;
+      }
 
       const base = item.visaRequiredCN ? (planByCountry[item.country] || defaultVisa) : defaultFree;
       const readinessPenalty = readiness === 'none' ? 10 : readiness === 'partial' ? 4 : 0;
@@ -621,6 +735,9 @@
     fillSelect('#evalCountry');
     fillSelect('#countCountry');
     fillSelect('#faqCountry');
+    setDefaultCountry('#evalCountry');
+    setDefaultCountry('#countCountry');
+    setDefaultCountry('#faqCountry');
     initEval();
     bindCountdown();
     bindFaq();
