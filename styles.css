@@ -24,11 +24,13 @@
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  scroll-padding-top: calc(76px + env(safe-area-inset-top, 0px));
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: "PingFang SC", "Microsoft YaHei UI", "Segoe UI", Arial, sans-serif;
   color: var(--text);
   background:
@@ -37,7 +39,7 @@ body {
     linear-gradient(180deg, rgba(36, 86, 212, 0.08) 0, rgba(36, 86, 212, 0) 280px),
     var(--bg);
   overflow-x: hidden;
-  letter-spacing: -0.01em;
+  letter-spacing: 0;
 }
 
 body::before {
@@ -70,7 +72,7 @@ a {
 
 .topbar {
   position: sticky;
-  top: 0;
+  top: env(safe-area-inset-top, 0px);
   z-index: 20;
   background: rgba(237, 242, 251, 0.82);
   border-bottom: 1px solid var(--line);
@@ -1025,7 +1027,7 @@ textarea:focus-visible {
   }
 
   .has-mobile-quickbar {
-    padding-bottom: 78px;
+    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar-inner {
@@ -1195,7 +1197,7 @@ textarea:focus-visible {
     position: fixed;
     left: 12px;
     right: 12px;
-    bottom: 12px;
+    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     z-index: 30;
     display: grid;
     grid-template-columns: repeat(4, 1fr);
