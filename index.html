@@ -28,8 +28,9 @@
       <p class="hero-sub">按国家查看签证规则、停留要求、材料重点、官方入口和高频风险，再用评估器与时间倒推器把准备动作排进日程。</p>
       <div class="hero-actions">
         <a class="btn btn-solid" href="./policy/index.html">查看签证政策</a>
+        <a class="btn btn-line" href="#autoEval">评估我的材料</a>
       </div>
-      <p class="hero-note">先看政策库，再做材料评估，最后用时间倒推器排出递交节奏。</p>
+      <p class="hero-note">先核对官方入口，再判断材料短板，最后按出发日期倒推预约、递交、补件和终检节奏。</p>
       <div class="hero-facts" aria-label="站点内容摘要">
         <div><strong>11</strong><span>目的地</span></div>
         <div><strong>材料</strong><span>清单整理</span></div>
@@ -45,13 +46,34 @@
       </div>
     </section>
 
+    <section id="workflowBoard" class="container block reveal">
+      <div class="block-head block-head-text">
+        <div>
+          <h2>准备路径总览</h2>
+          <p>把站内数据转成三类动作：先处理需要签证的目的地，再核对免签入境硬条件，最后回到官方链接确认变化。</p>
+        </div>
+      </div>
+      <div id="prepBoard" class="prep-board"></div>
+    </section>
+
     <section id="hotSection" class="container block reveal">
-      <div class="block-head"><h2>热门国家签证</h2><a href="./policy/index.html">查看更多</a></div>
+      <div class="block-head block-head-text">
+        <div>
+          <h2>热门国家签证</h2>
+          <p>先看规则、停留、办理节奏和官方入口数量，再进入详情页拆材料与风险。</p>
+        </div>
+        <a href="./policy/index.html">查看更多</a>
+      </div>
       <div id="homeCards" class="card-grid"></div>
     </section>
 
     <section id="autoEval" class="container block reveal">
-      <div class="block-head"><h2>材料准备评估</h2></div>
+      <div class="block-head block-head-text">
+        <div>
+          <h2>材料准备评估</h2>
+          <p>评分不是审批概率，只用于发现材料准备、资金解释、行程一致性和国内约束力的明显短板。</p>
+        </div>
+      </div>
       <div class="apply-grid">
         <form id="visaEvalForm" class="card form-card" action="#" method="post">
           <label>目标国家<select id="evalCountry" required><option value="">请选择国家</option></select></label>
@@ -85,7 +107,12 @@
     </section>
 
     <section id="countdownSection" class="container block reveal">
-      <div class="block-head"><h2>办理时间倒推器</h2></div>
+      <div class="block-head block-head-text">
+        <div>
+          <h2>办理时间倒推器</h2>
+          <p>选择国家和出发日期后自动生成建议启动日、最晚递交日、复核日和出发前终检日。</p>
+        </div>
+      </div>
       <div class="card countdown-box">
         <div class="tool-actions countdown-actions">
           <select id="countCountry"></select>
@@ -107,7 +134,12 @@
     </section>
 
     <section id="faqSection" class="container block reveal">
-      <div class="block-head"><h2>常见问题</h2></div>
+      <div class="block-head block-head-text">
+        <div>
+          <h2>常见问题</h2>
+          <p>按国家生成更贴近材料、流程和风险的问答，避免只看泛泛说明。</p>
+        </div>
+      </div>
       <div class="card">
         <div class="tool-actions"><select id="faqCountry"></select></div>
         <div id="smartFaq" class="faq"></div>
@@ -115,7 +147,10 @@
     </section>
 
   </main>
-  <footer class="container footer reveal"><p>© 2026 VisaWeb · 中国大陆护照签证信息</p></footer>
+  <footer class="container footer reveal">
+    <p>© 2026 VisaWeb · 中国大陆护照签证信息</p>
+    <p>本站为静态整理信息，不替代官方规则；递交或出行前请逐条复核使领馆、签证中心或入境管理部门页面。</p>
+  </footer>
   <nav class="mobile-quickbar" aria-label="移动端快捷导航">
     <a href="./policy/index.html">政策</a>
     <a href="#autoEval">评估</a>

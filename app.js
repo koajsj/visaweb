@@ -62,6 +62,26 @@
 
   const joinList = (items = [], separator = '、') => items.filter(Boolean).join(separator);
 
+  const officialCount = (item) => (item.officialRefs || []).length;
+
+  const copyText = async (text) => {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+
+    const input = document.createElement('textarea');
+    input.value = text;
+    input.setAttribute('readonly', '');
+    input.style.position = 'fixed';
+    input.style.opacity = '0';
+    document.body.appendChild(input);
+    input.select();
+    const copied = document.execCommand('copy');
+    input.remove();
+    return copied;
+  };
+
   const getLatestUpdate = () => {
     const dates = data.map((item) => item.updatedAt).filter(Boolean).sort();
     return dates[dates.length - 1] || '待核对';
@@ -167,11 +187,48 @@
         <p><strong>节奏：</strong>${escapeHtml(item.leadTime)}</p>
         <div class="country-card-meta">
           <span>${escapeHtml(item.interview || '流程以官方为准')}</span>
-          <span>${escapeHtml((item.officialRefs || []).length)} 个官方入口</span>
+          <span>${escapeHtml(officialCount(item))} 个官方入口</span>
         </div>
         <span class="card-more">查看材料、风险与官方链接</span>
       </a>
     `).join('');
+  };
+
+  const renderPrepBoard = () => {
+    const target = document.querySelector('#prepBoard');
+    if (!target) return;
+
+    const visaItems = data.filter((item) => item.visaRequiredCN).slice(0, 4);
+    const freeItems = data.filter((item) => !item.visaRequiredCN);
+    const reviewItems = [...data]
+      .sort((a, b) => String(b.verifiedAt || b.updatedAt || '').localeCompare(String(a.verifiedAt || a.updatedAt || '')))
+      .slice(0, 3);
+
+    const countryLinks = (items) => items.map((item) => `
+      <a href="./policy/index.html?country=${encodeURIComponent(item.country)}">
+        ${flagHtml(item)}<span>${escapeHtml(item.country)}</span><small>${escapeHtml(item.leadTime)}</small>
+      </a>
+    `).join('');
+
+    target.innerHTML = `
+      <article class="prep-card">
+        <strong>需要签证</strong>
+        <p>${visaItems.length} 个代表目的地需要提前处理预约、递交或生物信息，时间线要先排。</p>
+        <div class="prep-country-list">${countryLinks(visaItems)}</div>
+      </article>
+      <article class="prep-card">
+        <strong>免签入境</strong>
+        <p>${freeItems.length} 个目的地免签不等于无条件入境，护照有效期、离境安排和住宿说明仍要备好。</p>
+        <div class="prep-country-list">${countryLinks(freeItems)}</div>
+      </article>
+      <article class="prep-card caution">
+        <strong>官方复核</strong>
+        <p>站内数据最近整理到 ${escapeHtml(getLatestUpdate())}；规则可能临时调整，递交前必须回到官方入口逐条确认。</p>
+        <div class="prep-mini-list">
+          ${reviewItems.map((item) => `<span>${escapeHtml(item.country)} · ${escapeHtml(officialCount(item))} 个入口</span>`).join('')}
+        </div>
+      </article>
+    `;
   };
 
   const getFilteredCountries = () => {
@@ -294,6 +351,36 @@
     }
   ];
 
+  const renderPolicyDigest = (filtered) => {
+    const target = document.querySelector('#policyDigest');
+    if (!target) return;
+
+    const visible = filtered || getFilteredCountries();
+    const visaRequiredCount = visible.filter((item) => item.visaRequiredCN).length;
+    const visaFreeCount = visible.length - visaRequiredCount;
+    const officialRefsCount = visible.reduce((sum, item) => sum + officialCount(item), 0);
+    const regions = [...new Set(visible.map((item) => item.region).filter(Boolean))];
+
+    target.innerHTML = `
+      <div class="digest-card">
+        <strong>${visible.length}</strong>
+        <span>匹配国家</span>
+      </div>
+      <div class="digest-card">
+        <strong>${visaRequiredCount}</strong>
+        <span>需签证</span>
+      </div>
+      <div class="digest-card">
+        <strong>${visaFreeCount}</strong>
+        <span>免签入境</span>
+      </div>
+      <div class="digest-card wide">
+        <strong>${officialRefsCount}</strong>
+        <span>官方参考入口 · ${escapeHtml(regions.length ? regions.join('、') : '暂无匹配地区')}</span>
+      </div>
+    `;
+  };
+
   const renderPolicy = () => {
     const listEl = document.querySelector('#policyCountryList');
     const detailEl = document.querySelector('#policyDetailPane');
@@ -301,6 +388,7 @@
     if (!listEl || !detailEl) return;
 
     const filtered = getFilteredCountries();
+    renderPolicyDigest(filtered);
     if (metaEl) {
       const visaRequiredCount = filtered.filter((item) => item.visaRequiredCN).length;
       const visaFreeCount = filtered.length - visaRequiredCount;
@@ -323,8 +411,12 @@
 
     listEl.innerHTML = filtered.map((item) => `
       <button class="country-item ${item.country === activeCountry ? 'active' : ''}" data-country="${escapeHtml(item.country)}" type="button">
-        <strong>${flagHtml(item)}${escapeHtml(item.country)}</strong>
-        <span>${escapeHtml(item.entryRuleCN)} · ${escapeHtml(item.stay)} · ${escapeHtml(item.processing)}</span>
+        <span class="country-item-top">
+          <strong>${flagHtml(item)}${escapeHtml(item.country)}</strong>
+          <em class="${item.visaRequiredCN ? 'need' : 'free'}">${item.visaRequiredCN ? '需签' : '免签'}</em>
+        </span>
+        <span>${escapeHtml(item.entryRuleCN)} · ${escapeHtml(item.stay)}</span>
+        <small>${escapeHtml(item.processing)} · ${escapeHtml(officialCount(item))} 个官方入口</small>
       </button>
     `).join('') || '<p class="tip-muted">没有匹配结果，换个关键词或地区再试。</p>';
 
@@ -354,6 +446,7 @@
       <div class="detail-chips">${detailChips.map((chip) => `<span class="detail-chip">${escapeHtml(chip)}</span>`).join('')}</div>
       <div class="detail-cta-row">
         ${officialUrl ? `<a class="btn btn-solid" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">打开官方入口</a>` : ''}
+        <button class="btn btn-line" type="button" data-copy-country="${escapeHtml(current.country)}">复制当前链接</button>
       </div>
       <div class="detail-summary">
         <p><strong>停留规则</strong><span>${escapeHtml(current.stay)}</span></p>
@@ -395,6 +488,7 @@
 
   const bindPolicy = () => {
     const listEl = document.querySelector('#policyCountryList');
+    const detailEl = document.querySelector('#policyDetailPane');
     if (!listEl) return;
 
     listEl.addEventListener('click', (event) => {
@@ -405,6 +499,27 @@
       updatePolicyUrl();
       if (window.matchMedia('(max-width: 980px)').matches) {
         document.querySelector('#policyDetailPane')?.scrollIntoView({ behavior: prefersReducedMotion ? 'auto' : 'smooth', block: 'start' });
+      }
+    });
+
+    detailEl?.addEventListener('click', async (event) => {
+      const button = event.target.closest('[data-copy-country]');
+      if (!button?.dataset.copyCountry) return;
+
+      const url = new URL(location.href);
+      url.search = `country=${encodeURIComponent(button.dataset.copyCountry)}`;
+      try {
+        await copyText(url.href);
+        button.textContent = '已复制链接';
+        setTimeout(() => {
+          button.textContent = '复制当前链接';
+        }, 1600);
+      } catch (error) {
+        console.warn('复制链接失败。', error);
+        button.textContent = '复制失败';
+        setTimeout(() => {
+          button.textContent = '复制当前链接';
+        }, 1600);
       }
     });
 
@@ -641,7 +756,7 @@
       </div>
     `;
 
-    button.addEventListener('click', () => {
+    const renderTimeline = () => {
       const country = document.querySelector('#countCountry')?.value;
       const departValue = document.querySelector('#departDate')?.value;
       const readiness = document.querySelector('#countReadiness')?.value || 'partial';
@@ -702,7 +817,14 @@
           ${renderStep(finalDate, '出发前终检', '再检查护照、票据、住宿、保险和官方公告。')}
         </div>
       `;
+    };
+
+    button.addEventListener('click', renderTimeline);
+    ['#countCountry', '#departDate', '#countReadiness', '#countUrgency'].forEach((selector) => {
+      document.querySelector(selector)?.addEventListener('change', renderTimeline);
+      document.querySelector(selector)?.addEventListener('input', renderTimeline);
     });
+    renderTimeline();
   };
 
   const renderFaq = (country) => {
@@ -731,6 +853,7 @@
     initReveal();
     renderHeroFacts();
     renderHomeCards();
+    renderPrepBoard();
     bindPolicy();
     fillSelect('#evalCountry');
     fillSelect('#countCountry');
