@@ -272,6 +272,7 @@ a {
   margin: 0;
   font-size: clamp(24px, 3vw, 34px);
   line-height: 1.2;
+  text-wrap: balance;
 }
 
 .block-head a {
@@ -1314,7 +1315,7 @@ textarea:focus-visible {
   }
 
   .has-mobile-quickbar {
-    padding-bottom: calc(78px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(126px + env(safe-area-inset-bottom, 0px));
   }
 
   .topbar-inner {
@@ -1327,6 +1328,10 @@ textarea:focus-visible {
   }
 
   .top-actions {
+    display: none;
+  }
+
+  .policy-page .topbar-inner > .btn {
     display: none;
   }
 
@@ -1343,6 +1348,7 @@ textarea:focus-visible {
   .hero h1 {
     font-size: 32px;
     line-height: 1.16;
+    text-wrap: balance;
   }
 
   .hero-sub {
@@ -1360,16 +1366,18 @@ textarea:focus-visible {
   }
 
   .hero-facts div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+    display: grid;
+    gap: 4px;
     padding: 14px;
   }
 
   .hero-facts strong,
   .hero-facts span {
     margin: 0;
+  }
+
+  .hero-facts strong {
+    font-size: 22px;
   }
 
   .block {
@@ -1484,31 +1492,32 @@ textarea:focus-visible {
 
   .mobile-quickbar {
     position: fixed;
-    left: 12px;
-    right: 12px;
-    bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    left: 4px;
+    right: 4px;
+    bottom: calc(4px + env(safe-area-inset-bottom, 0px));
     z-index: 30;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 6px;
-    padding: 8px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 3px;
+    padding: 4px;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 15px;
     background: rgba(255, 255, 255, 0.94);
     box-shadow: 0 14px 34px rgba(16, 32, 51, 0.16);
     backdrop-filter: blur(14px);
   }
 
   .mobile-quickbar a {
-    min-height: 42px;
-    border-radius: 12px;
+    min-height: 38px;
+    border-radius: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
     color: var(--primary);
     text-decoration: none;
-    font-size: 13px;
-    font-weight: 760;
+    font-size: 12px;
+    font-weight: 740;
+    letter-spacing: -0.01em;
   }
 
   .mobile-quickbar a:active {

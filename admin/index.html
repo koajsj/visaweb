@@ -50,6 +50,27 @@
     ];
     const requiredArrayFields = ['coreDocs', 'riskTips', 'communityIssues', 'officialRefs'];
     const validRegions = ['亚洲', '欧洲', '美洲', '大洋洲'];
+    const readLocalData = () => {
+      try {
+        return localStorage.getItem(key);
+      } catch (error) {
+        throw new Error('浏览器禁止读取本地存储。');
+      }
+    };
+    const writeLocalData = (value) => {
+      try {
+        localStorage.setItem(key, value);
+      } catch (error) {
+        throw new Error('浏览器禁止写入本地存储。');
+      }
+    };
+    const clearLocalData = () => {
+      try {
+        localStorage.removeItem(key);
+      } catch (error) {
+        throw new Error('浏览器禁止清除本地存储。');
+      }
+    };
 
     const escapeHtml = (value) => String(value ?? '')
       .replaceAll('&', '&amp;')
@@ -146,12 +167,14 @@
 
     document.getElementById('adminLoad').onclick = () => {
       try {
-        const local = localStorage.getItem(key);
+        const local = readLocalData();
         text.value = local || JSON.stringify(window.VISA_DATA || [], null, 2);
-        msg.textContent = '已加载当前数据。';
+        msg.textContent = local ? '已加载本地覆盖数据。' : '已加载默认数据。';
         showValidation(validateVisaData(JSON.parse(text.value)));
       } catch (e) {
-        msg.textContent = '读取失败：' + e.message;
+        text.value = JSON.stringify(window.VISA_DATA || [], null, 2);
+        msg.textContent = '读取失败：' + e.message + ' 已回退到默认数据。';
+        showValidation(validateVisaData(JSON.parse(text.value)));
       }
     };
     document.getElementById('adminValidate').onclick = () => {
@@ -166,7 +189,7 @@
     document.getElementById('adminSave').onclick = () => {
       try {
         const { parsed, issues } = parseEditorData();
-        localStorage.setItem(key, JSON.stringify(parsed));
+        writeLocalData(JSON.stringify(parsed));
         const warningCount = issues.filter((issue) => issue.type === 'warning').length;
         msg.textContent = warningCount
           ? `保存成功，但还有 ${warningCount} 个提醒；刷新前台页面即可生效。`
@@ -177,7 +200,7 @@
     };
     document.getElementById('adminClear').onclick = () => {
       try {
-        localStorage.removeItem(key);
+        clearLocalData();
         msg.textContent = '已清除本地覆盖数据。';
         showValidation([]);
       } catch (e) {

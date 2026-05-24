@@ -66,8 +66,12 @@
 
   const copyText = async (text) => {
     if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(text);
-      return true;
+      try {
+        await navigator.clipboard.writeText(text);
+        return true;
+      } catch (error) {
+        console.warn('剪贴板 API 不可用，回退到旧复制方式。', error);
+      }
     }
 
     const input = document.createElement('textarea');
@@ -79,7 +83,10 @@
     input.select();
     const copied = document.execCommand('copy');
     input.remove();
-    return copied;
+    if (!copied) {
+      throw new Error('复制失败，浏览器拒绝了剪贴板操作。');
+    }
+    return true;
   };
 
   const getLatestUpdate = () => {
@@ -566,6 +573,13 @@
     const get = (id) => document.querySelector(id)?.value || '';
     const checked = (id) => Boolean(document.querySelector(id)?.checked);
     const scoreText = (value) => `${value > 0 ? '+' : ''}${value}`;
+    const submitEval = () => {
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+        return;
+      }
+      form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    };
 
     const countryDifficulty = {
       美国: -11,
@@ -708,14 +722,14 @@
     });
 
     form.addEventListener('change', () => {
-      if (get('#evalCountry')) form.requestSubmit();
+      if (get('#evalCountry')) submitEval();
     });
 
     docRange?.addEventListener('input', () => {
-      if (get('#evalCountry')) form.requestSubmit();
+      if (get('#evalCountry')) submitEval();
     });
 
-    if (get('#evalCountry')) form.requestSubmit();
+    if (get('#evalCountry')) submitEval();
   };
 
   const bindCountdown = () => {
