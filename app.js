@@ -54,6 +54,15 @@
     }
   };
 
+  const isSafeHttpUrl = (url) => {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch (error) {
+      return false;
+    }
+  };
+
   const flagHtml = (item) => {
     if (!item?.flagCode) return '';
     const country = escapeHtml(item.country);
@@ -433,6 +442,7 @@
     }
 
     const officialUrl = current.officialRefs?.[0] || '';
+    const safeOfficialUrl = isSafeHttpUrl(officialUrl) ? officialUrl : '';
     const prepSteps = buildPrepSteps(current);
     const riskItems = buildRiskItems(current);
     const entryTips = buildEntryTips(current);
@@ -452,7 +462,7 @@
       <p class="tip-muted">${escapeHtml(current.entryRuleCN)}。${escapeHtml(current.visaRequiredCN ? '材料、预约和口径一致性是核心。' : '重点是停留天数、护照有效期和入境解释。')}</p>
       <div class="detail-chips">${detailChips.map((chip) => `<span class="detail-chip">${escapeHtml(chip)}</span>`).join('')}</div>
       <div class="detail-cta-row">
-        ${officialUrl ? `<a class="btn btn-solid" href="${escapeHtml(officialUrl)}" target="_blank" rel="noopener noreferrer">打开官方入口</a>` : ''}
+        ${safeOfficialUrl ? `<a class="btn btn-solid" href="${escapeHtml(safeOfficialUrl)}" target="_blank" rel="noopener noreferrer">打开官方入口</a>` : ''}
         <button class="btn btn-line" type="button" data-copy-country="${escapeHtml(current.country)}">复制当前链接</button>
       </div>
       <div class="detail-summary">
@@ -481,14 +491,25 @@
       <h4>入境提示</h4>
       <ul class="risk-list">${listHtml(entryTips)}</ul>
       <h4>官方参考链接</h4>
-      <ul class="official-links">${(current.officialRefs || []).map((url) => `
-        <li>
-          <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
-            <strong>${escapeHtml(hostLabel(url))}</strong>
-            <span>${escapeHtml(url)}</span>
-          </a>
-        </li>
-      `).join('')}</ul>
+      <ul class="official-links">${(current.officialRefs || []).map((url) => {
+        if (!isSafeHttpUrl(url)) {
+          return `
+            <li class="official-links-invalid">
+              <strong>${escapeHtml(hostLabel(url))}</strong>
+              <span>链接格式无效，已被前端忽略。</span>
+            </li>
+          `;
+        }
+
+        return `
+          <li>
+            <a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">
+              <strong>${escapeHtml(hostLabel(url))}</strong>
+              <span>${escapeHtml(url)}</span>
+            </a>
+          </li>
+        `;
+      }).join('')}</ul>
       <p class="tip-muted">提示：任何签证或入境规则都可能临时调整，递交前请以目的地官方公告和使领馆页面为最终依据。</p>
     `;
   };

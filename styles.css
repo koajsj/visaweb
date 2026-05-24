@@ -1114,6 +1114,26 @@ input[type="range"] {
   box-shadow: var(--shadow-sm);
 }
 
+.official-links-invalid {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px dashed rgba(120, 134, 169, 0.4);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.official-links-invalid strong {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.official-links-invalid span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .official-links strong {
   color: var(--text);
   font-size: 14px;
